@@ -50,3 +50,12 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# MRI
+ruby
+ruby-build
+
+# MRI vscode
+.vscode/*
+!.vscode/c_cpp_properties.json
+!.vscode/settings.json

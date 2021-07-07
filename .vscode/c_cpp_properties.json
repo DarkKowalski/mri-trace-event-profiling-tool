@@ -1,0 +1,17 @@
+{
+    "configurations": [
+        {
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/ruby/include/**",
+                "${workspaceFolder}/ruby/internal/**",
+                "${workspaceFolder}/ruby-build/**"
+            ],
+            "intelliSenseMode": "linux-gcc-x64",
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c99",
+            "cppStandard": "c++14"
+        }
+    ],
+    "version": 4
+}
