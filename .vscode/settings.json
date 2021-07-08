@@ -1,8 +1,21 @@
 {
     "[c]": {
-        "editor.tabSize": 8,
+        "editor.tabSize": 4,
         "editor.insertSpaces": true,
         "editor.useTabStops": true,
         "editor.detectIndentation": false,
+    },
+    "files.associations": {
+        "*.erb": "erb",
+        "istream": "c",
+        "ostream": "c",
+        "ratio": "c",
+        "system_error": "c",
+        "array": "c",
+        "functional": "c",
+        "tuple": "c",
+        "type_traits": "c",
+        "utility": "c",
+        "variant": "c"
     }
 }
