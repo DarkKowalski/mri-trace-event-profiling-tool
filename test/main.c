@@ -2,9 +2,10 @@
 
 void *function0(void *args)
 {
-    ractor_init_profiling_event_list();
+    int ractor_id = ractor_init_profiling_event_list();
+    printf("Ractor ID = %d\n", ractor_id);
     int id = trace_profiling_event_begin();
-    sleep(2);
+    sleep(1);
     trace_profiling_event_end(id);
 }
 

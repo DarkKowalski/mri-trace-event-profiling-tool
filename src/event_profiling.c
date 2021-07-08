@@ -3,6 +3,9 @@
 /* Global bucket */
 profiling_event_bucket_t *rb_profiling_event_bucket;
 
+/* Phase strings */
+static const char profiling_event_phase_str[] = {'B', 'E'};
+
 /* Internal functions */
 
 #define refute_null(var, reason)                                               \
@@ -63,6 +66,7 @@ static inline profiling_event_t *get_a_profiling_event_slot(const int ractor_id)
                             "To many events.\n");
 
     profiling_event_t *event = &(list->event[slot_index]);
+    event->ractor = ractor_id;
 
     return event;
 }
@@ -121,21 +125,18 @@ debug_print_profling_event_list(const profiling_event_list_t *list)
     }
 }
 
-void debug_print_profling_event_bucket() {
+void debug_print_profling_event_bucket()
+{
     pthread_mutex_lock(&(rb_profiling_event_bucket->bucket_lock));
     int ractors = rb_profiling_event_bucket->ractors;
     for (int i = 0; i < ractors; i++)
     {
-        debug_print_profling_event_list(rb_profiling_event_bucket->ractor_profiling_event_list[i]);
+        debug_print_profling_event_list(
+            rb_profiling_event_bucket->ractor_profiling_event_list[i]);
     }
     pthread_mutex_unlock(&(rb_profiling_event_bucket->bucket_lock));
 }
 #else
-static inline void debug_print_profling_event(const profiling_event_t *event) {}
-static inline void
-debug_print_profling_event_list(const profiling_event_list_t *list)
-{
-}
 void debug_print_profling_event_bucket() {}
 #endif
 
@@ -197,7 +198,7 @@ int trace_profiling_event(const char *file, const char *func, const int line,
                           const profiling_event_phase_t phase)
 {
     // TODO: get ractor_id;
-    int ractor_id = 0;
+    int ractor_id = -1;
 
     profiling_event_t *event = get_a_profiling_event_slot(ractor_id);
     int                id = (event_id == NEW_PROFILING_EVENT_ID)
@@ -219,6 +220,7 @@ int trace_profiling_event(const char *file, const char *func, const int line,
     return id;
 }
 
-void serialize_profiling_event_bucket(){
+void serialize_profiling_event_bucket()
+{
     // TODO
 }
