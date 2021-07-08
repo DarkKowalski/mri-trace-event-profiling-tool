@@ -34,10 +34,11 @@ typedef enum profiling_event_phase
 
 typedef struct profiling_event
 {
-    /* Title: file:function(id) Args: line */
+    /* Title: file:function(id) Args: line, ractor */
     char *file;
     char *function;
     int   line;
+    int   ractor;
     int   id;
 
     pid_t pid;
@@ -78,7 +79,7 @@ typedef struct profiling_event_bucket
 extern profiling_event_bucket_t *rb_profiling_event_bucket;
 
 profiling_event_bucket_t *init_profiling_event_bucket();
-void                      ractor_init_profiling_event_list();
+int                       ractor_init_profiling_event_list();
 void destory_profiling_event_bucket(profiling_event_bucket_t *bucket);
 
 /* Trace functions we should use:
@@ -86,9 +87,9 @@ void destory_profiling_event_bucket(profiling_event_bucket_t *bucket);
    workload();
    trace_profiling_event_end(event_id);
 */
-int tet_trace_profiling_event(const char *file, const char *func,
-                              const int line, const int event_id,
-                              const profiling_event_phase_t phase);
+int trace_profiling_event(const char *file, const char *func, const int line,
+                          const int                     event_id,
+                          const profiling_event_phase_t phase);
 
 #define trace_profiling_event_default(event_id, phase)                         \
     trace_profiling_event(PROFILING_EVENT_DEFAULT_FILE_NAME,                   \
