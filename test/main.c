@@ -3,6 +3,9 @@
 void *function0(void *args)
 {
     ractor_init_profiling_event_list();
+    int id = trace_profiling_event_begin();
+    sleep(2);
+    trace_profiling_event_end(id);
 }
 
 int main(void)
@@ -16,6 +19,6 @@ int main(void)
     for (int i = 0; i < 8; i++)
         pthread_join(thread_id[i], NULL);
 
-    printf("%d\n", rb_profiling_event_bucket->ractors);
+    debug_print_profling_event_bucket();
     return 0;
 }

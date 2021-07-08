@@ -46,7 +46,7 @@ typedef struct profiling_event
 
     profiling_event_phase_t phase;
 
-    long timestamp;
+    time_t timestamp;
 } profiling_event_t;
 
 #define PROFILING_EVENT_DEFAULT_FILE_NAME     __FILE__
@@ -79,8 +79,9 @@ typedef struct profiling_event_bucket
 extern profiling_event_bucket_t *rb_profiling_event_bucket;
 
 profiling_event_bucket_t *init_profiling_event_bucket();
-int                       ractor_init_profiling_event_list();
-void destory_profiling_event_bucket(profiling_event_bucket_t *bucket);
+void                      destory_profiling_event_bucket();
+
+int ractor_init_profiling_event_list();
 
 /* Trace functions we should use:
    int event_id = trace_profiling_event_begin();
@@ -108,6 +109,7 @@ int trace_profiling_event(const char *file, const char *func, const int line,
 /* Serialize JSON */
 void serialize_profiling_event_bucket();
 
+void debug_print_profling_event_bucket();
 #else
 #endif /* USE_EVENT_PROFILING */
 
