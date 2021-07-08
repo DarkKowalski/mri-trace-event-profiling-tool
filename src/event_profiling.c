@@ -59,7 +59,7 @@ static inline profiling_event_list_t *init_profiling_event_list(int ractor_id)
 static inline profiling_event_t *get_a_profiling_event_slot(const int ractor_id)
 {
     profiling_event_list_t *list =
-        rb_profiling_event_bucket->ractor_profiling_event_list[ractor_id];
+        rb_profiling_event_bucket->ractor_profiling_event_list[ractor_id - 1];
 
     int slot_index = list->tail++;
     refute_greater_or_equal(slot_index, EVENT_PROFILING_RACTOR_MAX_EVENTS,
@@ -74,7 +74,7 @@ static inline profiling_event_t *get_a_profiling_event_slot(const int ractor_id)
 static inline int get_a_new_event_id(const int ractor_id)
 {
     profiling_event_list_t *list =
-        rb_profiling_event_bucket->ractor_profiling_event_list[ractor_id];
+        rb_profiling_event_bucket->ractor_profiling_event_list[ractor_id - 1];
     return list->event_id++;
 }
 
@@ -148,7 +148,7 @@ profiling_event_bucket_t *init_profiling_event_bucket()
     refute_null(bucket,
                 "Failed to allocate memory for rb_profiling_event_bucket.\n");
 
-    profiling_event_list_t *first_list = init_profiling_event_list(0);
+    profiling_event_list_t *first_list = init_profiling_event_list(1);
     refute_null(first_list,
                 "Failed to allocate memory for first profiling event list.\n");
 
@@ -162,17 +162,17 @@ profiling_event_bucket_t *init_profiling_event_bucket()
 
 int ractor_init_profiling_event_list()
 {
-    int ractor_id = -1;
     pthread_mutex_lock(&(rb_profiling_event_bucket->bucket_lock));
-    ractor_id = rb_profiling_event_bucket->ractors++;
+    int ractor_id = ++(rb_profiling_event_bucket->ractors);
     pthread_mutex_unlock(&(rb_profiling_event_bucket->bucket_lock));
-    refute_greater_or_equal(ractor_id, EVENT_PROFILING_MAX_RACTORS,
-                            "Too many Ractors.\n");
+    refute_greater_or_equal(
+        ractor_id, EVENT_PROFILING_MAX_RACTORS + 1,
+        "Too many Ractors.\n"); /* ractor_id starts from 1 */
 
     profiling_event_list_t *list = init_profiling_event_list(ractor_id);
     refute_null(list, "Failed to allocate memory for profiling event list\n");
 
-    rb_profiling_event_bucket->ractor_profiling_event_list[ractor_id] = list;
+    rb_profiling_event_bucket->ractor_profiling_event_list[ractor_id - 1] = list;
 
     return ractor_id;
 }
@@ -198,7 +198,7 @@ int trace_profiling_event(const char *file, const char *func, const int line,
                           const profiling_event_phase_t phase)
 {
     // TODO: get ractor_id;
-    int ractor_id = -1;
+    int ractor_id = 1;
 
     profiling_event_t *event = get_a_profiling_event_slot(ractor_id);
     int                id = (event_id == NEW_PROFILING_EVENT_ID)
