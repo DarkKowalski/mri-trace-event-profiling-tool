@@ -37,7 +37,7 @@ static inline time_t microsecond_timestamp()
     return us;
 }
 
-static inline profiling_event_list_t *init_profiling_event_list(int ractor_id)
+static inline profiling_event_list_t *init_profiling_event_list(const int ractor_id)
 {
     profiling_event_list_t *list =
         (profiling_event_list_t *)malloc(sizeof(profiling_event_list_t));
