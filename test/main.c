@@ -20,6 +20,7 @@ int main(void)
     for (int i = 0; i < 8; i++)
         pthread_join(thread_id[i], NULL);
 
-    debug_print_profling_event_bucket();
+    //debug_print_profling_event_bucket();
+    serialize_profiling_event_bucket();
     return 0;
 }

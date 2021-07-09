@@ -37,7 +37,8 @@ static inline time_t microsecond_timestamp()
     return us;
 }
 
-static inline profiling_event_list_t *init_profiling_event_list(const int ractor_id)
+static inline profiling_event_list_t *
+init_profiling_event_list(const int ractor_id)
 {
     profiling_event_list_t *list =
         (profiling_event_list_t *)malloc(sizeof(profiling_event_list_t));
@@ -78,15 +79,35 @@ static inline int get_a_new_event_id(const int ractor_id)
     return list->event_id++;
 }
 
-static inline void serialize_profiling_event(const profiling_event_t *event)
+static inline int serialize_profiling_event(const profiling_event_t *event,
+                                            char *buffer, const int offset)
 {
-    // TODO
+    char *event_buffer = buffer + offset;
+
+    return sprintf(event_buffer,
+                   "{\"name\": \"%s:%s(%d)\",\n"
+                   "\"ph\":\"%c\",\n"
+                   "\"pid\":\"%i\",\n"
+                   "\"tid\":\"%i\",\n"
+                   "\"ts\":\"%ld\",\n"
+                   "\"args\": {\"line\": \"%d\", \"ractor\":\"%d\"}},\n",
+                   event->file, event->function, event->id,
+                   profiling_event_phase_str[event->phase], event->pid,
+                   event->tid, event->timestamp, event->line, event->ractor);
 }
 
-static inline void
-serialize_profiling_event_list(const profiling_event_list_t *list)
+static inline int
+serialize_profiling_event_list(const profiling_event_list_t *list, char *buffer,
+                               const int offset)
 {
-    // TODO
+    int events = list->tail;
+    int list_offset = offset;
+    for (int i = 0; i < events; i++)
+    {
+        list_offset +=
+            serialize_profiling_event(&(list->event[i]), buffer, list_offset);
+    }
+    return list_offset;
 }
 
 static inline void destory_profiling_event_list(profiling_event_list_t *list)
@@ -172,7 +193,8 @@ int ractor_init_profiling_event_list()
     profiling_event_list_t *list = init_profiling_event_list(ractor_id);
     refute_null(list, "Failed to allocate memory for profiling event list\n");
 
-    rb_profiling_event_bucket->ractor_profiling_event_list[ractor_id - 1] = list;
+    rb_profiling_event_bucket->ractor_profiling_event_list[ractor_id - 1] =
+        list;
 
     return ractor_id;
 }
@@ -222,5 +244,28 @@ int trace_profiling_event(const char *file, const char *func, const int line,
 
 void serialize_profiling_event_bucket()
 {
-    // TODO
+    char *bucket_buffer =
+        (char *)malloc(sizeof(char) * EVENT_PROFILING_BUCKET_BUFFER);
+    refute_null(bucket_buffer,
+                "Failed to allocate memory for event bucket buffer.\n");
+
+    int offset = sprintf(bucket_buffer, "[");
+
+    pthread_mutex_lock(&(rb_profiling_event_bucket->bucket_lock));
+    int ractors = rb_profiling_event_bucket->ractors;
+    for (int i = 0; i < ractors; i++)
+    {
+        profiling_event_list_t *list =
+            rb_profiling_event_bucket->ractor_profiling_event_list[i];
+        offset = serialize_profiling_event_list(list, bucket_buffer, offset);
+    }
+    pthread_mutex_unlock(&(rb_profiling_event_bucket->bucket_lock));
+    sprintf(bucket_buffer + offset - 2, "]\n"); /* Remove the last `,` */
+
+    FILE *stream = fopen(EVENT_PROFILING_OUTFILE, "w");
+    refute_null(stream, "Failed to write file.\n");
+    fputs(bucket_buffer, stream);
+    fclose(stream);
+
+    free(bucket_buffer);
 }
