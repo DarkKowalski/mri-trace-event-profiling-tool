@@ -110,10 +110,10 @@ serialize_profiling_event_list(const profiling_event_list_t *list, char *buffer,
     return list_offset;
 }
 
-static inline void destory_profiling_event_list(profiling_event_list_t *list)
+static inline void destroy_profiling_event_list(profiling_event_list_t *list)
 {
-    refute_null(list, "Cannot destory null profiling event list.\n");
-    refute_null(list->event, "Cannot destory bad profiling event list.\n");
+    refute_null(list, "Cannot destroy null profiling event list.\n");
+    refute_null(list->event, "Cannot destroy bad profiling event list.\n");
 
     free(list->event);
     free(list);
@@ -130,10 +130,10 @@ static inline void debug_print_profling_event(const profiling_event_t *event)
            "id = %d\n"
            "pid = %d\n"
            "tid = %d\n"
-           "phase = %d\n"
+           "phase = %c\n"
            "timestamp = %ld\n\n",
            event->file, event->function, event->line, event->ractor, event->id,
-           event->pid, event->tid, event->phase, event->timestamp);
+           event->pid, event->tid, profiling_event_phase_str[event->phase], event->timestamp);
 }
 
 static inline void
@@ -199,15 +199,15 @@ int ractor_init_profiling_event_list()
     return ractor_id;
 }
 
-void destory_profiling_event_bucket()
+void destroy_profiling_event_bucket()
 {
     pthread_mutex_lock(&(rb_profiling_event_bucket->bucket_lock));
-    refute_null(rb_profiling_event_bucket, "Cannot destory null bucket.\n");
+    refute_null(rb_profiling_event_bucket, "Cannot destroy null bucket.\n");
 
     int ractors = rb_profiling_event_bucket->ractors;
     for (int i = 0; i < ractors; i++)
     {
-        destory_profiling_event_list(
+        destroy_profiling_event_list(
             rb_profiling_event_bucket->ractor_profiling_event_list[i]);
     }
     pthread_mutex_unlock(&(rb_profiling_event_bucket->bucket_lock));

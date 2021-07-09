@@ -79,7 +79,7 @@ typedef struct profiling_event_bucket
 extern profiling_event_bucket_t *rb_profiling_event_bucket;
 
 profiling_event_bucket_t *init_profiling_event_bucket();
-void                      destory_profiling_event_bucket();
+void                      destroy_profiling_event_bucket();
 
 int ractor_init_profiling_event_list();
 

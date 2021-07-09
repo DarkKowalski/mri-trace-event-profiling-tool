@@ -61,4 +61,4 @@ ruby-build
 !.vscode/settings.json
 
 # Trace
-.json
+*.json
