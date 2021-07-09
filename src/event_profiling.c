@@ -1,5 +1,14 @@
 #include "event_profiling.h"
 
+/* GCC warning */
+#include <sys/syscall.h>
+pid_t gettid(void) { return syscall(SYS_gettid); }
+
+/* Ruby */
+#include "ruby.h"
+#include "ruby/ractor.h"
+#include "ruby/thread_native.h"
+
 /* Global bucket */
 profiling_event_bucket_t *rb_profiling_event_bucket;
 
@@ -133,7 +142,8 @@ static inline void debug_print_profling_event(const profiling_event_t *event)
            "phase = %c\n"
            "timestamp = %ld\n\n",
            event->file, event->function, event->line, event->ractor, event->id,
-           event->pid, event->tid, profiling_event_phase_str[event->phase], event->timestamp);
+           event->pid, event->tid, profiling_event_phase_str[event->phase],
+           event->timestamp);
 }
 
 static inline void
@@ -148,14 +158,14 @@ debug_print_profling_event_list(const profiling_event_list_t *list)
 
 void debug_print_profling_event_bucket()
 {
-    pthread_mutex_lock(&(rb_profiling_event_bucket->bucket_lock));
+    rb_native_mutex_lock(&(rb_profiling_event_bucket->bucket_lock));
     int ractors = rb_profiling_event_bucket->ractors;
     for (int i = 0; i < ractors; i++)
     {
         debug_print_profling_event_list(
             rb_profiling_event_bucket->ractor_profiling_event_list[i]);
     }
-    pthread_mutex_unlock(&(rb_profiling_event_bucket->bucket_lock));
+    rb_native_mutex_unlock(&(rb_profiling_event_bucket->bucket_lock));
 }
 #else
 void debug_print_profling_event_bucket() {}
@@ -173,7 +183,7 @@ profiling_event_bucket_t *init_profiling_event_bucket()
     refute_null(first_list,
                 "Failed to allocate memory for first profiling event list.\n");
 
-    pthread_mutex_init(&(bucket->bucket_lock), NULL);
+    rb_native_mutex_initialize(&(bucket->bucket_lock));
     bucket->ractors = 1;
     bucket->ractor_profiling_event_list[0] = first_list;
 
@@ -183,9 +193,9 @@ profiling_event_bucket_t *init_profiling_event_bucket()
 
 int ractor_init_profiling_event_list()
 {
-    pthread_mutex_lock(&(rb_profiling_event_bucket->bucket_lock));
+    rb_native_mutex_lock(&(rb_profiling_event_bucket->bucket_lock));
     int ractor_id = ++(rb_profiling_event_bucket->ractors);
-    pthread_mutex_unlock(&(rb_profiling_event_bucket->bucket_lock));
+    rb_native_mutex_unlock(&(rb_profiling_event_bucket->bucket_lock));
     refute_greater_or_equal(
         ractor_id, EVENT_PROFILING_MAX_RACTORS + 1,
         "Too many Ractors.\n"); /* ractor_id starts from 1 */
@@ -201,7 +211,7 @@ int ractor_init_profiling_event_list()
 
 void destroy_profiling_event_bucket()
 {
-    pthread_mutex_lock(&(rb_profiling_event_bucket->bucket_lock));
+    rb_native_mutex_lock(&(rb_profiling_event_bucket->bucket_lock));
     refute_null(rb_profiling_event_bucket, "Cannot destroy null bucket.\n");
 
     int ractors = rb_profiling_event_bucket->ractors;
@@ -210,7 +220,7 @@ void destroy_profiling_event_bucket()
         destroy_profiling_event_list(
             rb_profiling_event_bucket->ractor_profiling_event_list[i]);
     }
-    pthread_mutex_unlock(&(rb_profiling_event_bucket->bucket_lock));
+    rb_native_mutex_unlock(&(rb_profiling_event_bucket->bucket_lock));
 
     free(rb_profiling_event_bucket);
 }
@@ -219,8 +229,7 @@ int trace_profiling_event(const char *file, const char *func, const int line,
                           const int                     event_id,
                           const profiling_event_phase_t phase)
 {
-    // TODO: get ractor_id;
-    int ractor_id = 1;
+    int ractor_id = rb_ractor_current_id();
 
     profiling_event_t *event = get_a_profiling_event_slot(ractor_id);
     int                id = (event_id == NEW_PROFILING_EVENT_ID)
@@ -251,7 +260,7 @@ void serialize_profiling_event_bucket()
 
     int offset = sprintf(bucket_buffer, "[");
 
-    pthread_mutex_lock(&(rb_profiling_event_bucket->bucket_lock));
+    rb_native_mutex_lock(&(rb_profiling_event_bucket->bucket_lock));
     int ractors = rb_profiling_event_bucket->ractors;
     for (int i = 0; i < ractors; i++)
     {
@@ -259,7 +268,7 @@ void serialize_profiling_event_bucket()
             rb_profiling_event_bucket->ractor_profiling_event_list[i];
         offset = serialize_profiling_event_list(list, bucket_buffer, offset);
     }
-    pthread_mutex_unlock(&(rb_profiling_event_bucket->bucket_lock));
+    rb_native_mutex_unlock(&(rb_profiling_event_bucket->bucket_lock));
     sprintf(bucket_buffer + offset - 2, "]\n"); /* Remove the last `,` */
 
     FILE *stream = fopen(EVENT_PROFILING_OUTFILE, "w");

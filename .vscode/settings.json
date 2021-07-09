@@ -16,6 +16,9 @@
         "tuple": "c",
         "type_traits": "c",
         "utility": "c",
-        "variant": "c"
+        "variant": "c",
+        "event_profiling.h": "c",
+        "ractor.h": "c",
+        "thread.h": "c"
     }
 }

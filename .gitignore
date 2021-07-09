@@ -54,6 +54,7 @@ dkms.conf
 # MRI
 ruby
 ruby-build
+ruby-install
 
 # MRI vscode
 .vscode/*

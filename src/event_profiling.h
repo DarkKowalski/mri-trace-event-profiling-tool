@@ -1,3 +1,4 @@
+/* FIXME: remove this stub configuration */
 #include "stub_config.h"
 
 #ifndef USE_EVENT_PROFILING
@@ -9,18 +10,16 @@
 
 /* FIXME: Use MRI definations instead when working on MRI */
 
+#include "ruby/internal/config.h"
+
 #include <pthread.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
-
-// #include "ruby/intern.h/config.h"
-
-#include <stddef.h>
-#include <sys/types.h>
 
 #if !defined(__GNUC__) && USE_EVENT_PROFILING
 #error "USE_EVENT_PROFILING is not supported by other than __GNUC__"
