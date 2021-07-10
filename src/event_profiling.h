@@ -77,6 +77,8 @@ typedef struct profiling_event_bucket
 /* Global bucket */
 extern profiling_event_bucket_t *rb_profiling_event_bucket;
 
+RUBY_SYMBOL_EXPORT_BEGIN
+
 profiling_event_bucket_t *init_profiling_event_bucket();
 void                      destroy_profiling_event_bucket();
 
@@ -109,6 +111,9 @@ int trace_profiling_event(const char *file, const char *func, const int line,
 void serialize_profiling_event_bucket();
 
 void debug_print_profling_event_bucket();
+
+RUBY_SYMBOL_EXPORT_END
+
 #else
 #endif /* USE_EVENT_PROFILING */
 
